@@ -3,6 +3,6 @@ joblib
 Pillow
 pandas
 numpy
-gunicorn
+# gunicorn
 scikit-learn
 matplotlib
