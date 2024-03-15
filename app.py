@@ -26,12 +26,25 @@ df=pd.read_csv("./dataset/engineering.csv")
 def index():
     if request.method == 'POST':
         # Get user-entered features
-        model = joblib.load('college_rank_predictor.pkl')
         user_features = {}
-        rank_to_access = int(request.form.get("rta"))
-        row = df.loc[df['rank'] == rank_to_access]
+        rank_to_access = request.form.get("rta",None)
+        tlr = float(request.form.get("tlr"))
+        rpc = float(request.form.get("rpc"))
+        go = float(request.form.get("go"))
+        oi = float(request.form.get("oi"))
+        perception = float(request.form.get("perception"))
+        
+        for i in [tlr, rpc, go, oi, perception]:
+            if not 0<i<=100:
+                return render_template('index1.html',message=f"Entered values must be from 1 to 100." )
+        prediction = model.predict([[tlr, rpc, go, oi, perception]])
+        prediction = prediction -1
+        if rank_to_access=='':
+            return render_template('index1.html',prediction=int(prediction[0].round()))
+        row = df.loc[df['rank'] == int(rank_to_access)]
         if row.empty:
             return render_template('index1.html',message="Entered rank is invalid")
+    
         top_college_features = {}
         for column in row.columns:
             # Exclude the 'Rank' column
@@ -47,15 +60,7 @@ def index():
         differences = {feature: user_features[feature] - top_college_features[feature] for feature in top_college_features}
         difference_count = sum(1 for diff in differences.values() if diff != 0)
         
-        # Predict rank (replace this with your actual prediction code)
-        tlr = float(request.form.get("tlr"))
-        rpc = float(request.form.get("rpc"))
-        go = float(request.form.get("go"))
-        oi = float(request.form.get("oi"))
-        perception = float(request.form.get("perception"))
-
-        prediction = model.predict([[tlr, rpc, go, oi, perception]])
-        prediction = prediction -1
+        
 
         plot_filenames = []
         for feature, value in user_features.items():
